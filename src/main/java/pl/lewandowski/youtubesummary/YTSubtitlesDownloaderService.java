@@ -5,8 +5,6 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.api.OllamaModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
@@ -16,21 +14,21 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class YTSubtitlesDownloader {
+public class YTSubtitlesDownloaderService {
 
 
     private final ChatModel chatModel;
 
-    public YTSubtitlesDownloader(ChatModel chatModel) {
+    public YTSubtitlesDownloaderService(ChatModel chatModel) {
         this.chatModel = chatModel;
     }
 
 
-    //narazie dodajemy tylko event listenera, który wywoła metodę downloadSubtitles() po uruchomieniu aplikacji
-    @EventListener(ApplicationReadyEvent.class)
-    public void downloadSubtitles() throws IOException, InterruptedException {
+    //event listener wywoła metodę downloadSubtitles() automatycznie po uruchomieniu aplikacji
+//    @EventListener(ApplicationReadyEvent.class)
+    public YtChatResponse getYtChatResponse(String videoId) throws IOException, InterruptedException {
 
-        String videoId = "YIMvxQaYjGQ";
+//        String videoId = "YIMvxQaYjGQ";
         //wywołanie zewnętrznego programu youtube-dl z parametrami --write-auto-sub --skip-download
         Runtime.getRuntime().exec(String.format(
                 "docker run --rm -v \"%s:/downloads\" jauderho/yt-dlp:latest" +
@@ -44,10 +42,8 @@ public class YTSubtitlesDownloader {
         FileSystemResource subtitles = new FileSystemResource("subtitles.vtt.pl.vtt");
         String subtitlesContent = StreamUtils.copyToString(subtitles.getInputStream(), StandardCharsets.UTF_8);
 
-//        System.out.println(subtitlesContent);
-
-
-        ChatResponse chatResponse = chatModel.call(
+        //OllAma chat model
+        ChatResponse summary = chatModel.call(
                 new Prompt(
                         "Streść o czym jest ten film: " + subtitlesContent,
                         OllamaOptions.builder().model(OllamaModel.LLAMA3_2)
@@ -55,7 +51,27 @@ public class YTSubtitlesDownloader {
                 )
         );
 
-        System.out.println(chatResponse.getResult().getOutput());
+        ChatResponse homework = chatModel.call(
+                new Prompt(
+                        "Opracuj konkretne zadanie domowe związane z tematem poruszanym w tej treści." +
+                                " Dołącz praktyczne wskazówki, które pomogą odbiorcy skutecznie je wykonać: " +
+                                summary,
+                        OllamaOptions.builder().model(OllamaModel.LLAMA3_2)
+                                .build()
+                )
+        );
+
+
+        return new YtChatResponse(
+                summary.getResult().getOutput().getContent(),
+                homework.getResult().getOutput().getContent()
+        );
+
+        //OpenAI chat model
+//        ChatResponse chatResponse = chatModel.call(
+//                new Prompt("Streść o czym jest ten film: " + subtitlesContent));
+//
+//        System.out.println(chatResponse.getResult().getOutput());
 
     }
 }

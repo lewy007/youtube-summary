@@ -1,7 +1,7 @@
 <h1 align="center">YOUTUBE SUMMARY</h1>
-Aplikacja na podstawie filmu z youtube potrafi nam go streścić. 
-Możemy w ogóle nie oglądać filmu i mieć z niego notatkę, a możemy obejrzeć i również stworzyć do tego notatkę,
-do której wrócimy za jakiś czas.
+Aplikacja na podstawie filmu z youtube (a dokładnie napisów generowanych automatycznie) potrafi nam go streścić. 
+Możemy w ogóle nie oglądać filmu i mieć z niego notatkę. 
+Wchodzimy na endpoint, podajemy id filmu i dostajemy streszczenie w formacie pdf.
 
 
 Napisy z youtube można pobierać poprze API (jest to uciążliwe) lub przez scrappera jak np. [yt-dlp] (https://github.com/yt-dlp/yt-dlp)
@@ -52,6 +52,15 @@ docker run --rm -v "C:\Users\Peter:/downloads" jauderho/yt-dlp:latest --write-au
 
 ```
 ollama run llama3.2
+```
+
+<li>Możemy wykorzystać wersję OpenAI i chat GPT, ale to wersja płatna. Najpierw trzeba doładować konto na OpenAI:</li>
+<li>Po uruchomieniu aplikacji wpisujmey poniższy adres URL. 
+Aplikacja pobierze napisy w celu streszczenia filmu oraz doda zadania do filmu (Ollama),
+a następnie zwróci informacje w formacie pdf:</li>
+
+```
+localhost:8080/get-subtitles?videoId=qHcPKdZZKfY
 ```
 
 </ol>
